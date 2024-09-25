@@ -10,9 +10,9 @@
     <h1>DataProxy</h1>
     <p>Listening for messages...</p>
 
+    <script src="./main.js"></script>
     <script>
         const USE_WORKER = false; // Set to true to use web workers, false otherwise
-        const PROCESS_TIME = 500 // Simulate processing time (in milliseconds)
         const DOCS_SIZE = 1000 // Number of returned docs
 
         let startTime
@@ -59,32 +59,29 @@
 
         // Simulate processing without web worker
         function simulateProcessing(query, origin, {useTransfer}) {
-            setTimeout(() => {
-                const data = generateDummyData(DOCS_SIZE);
-                console.log('[DATAPROXY] post data : ', data)
-                endTime2 = performance.now()
-                console.log('[DATAPROXY] elapsed after processing : ', endTime2 - startTime);
-                console.log('[DATAPROXY] PROCESS_TIME : ', PROCESS_TIME)
-                if (useTransfer) {
-                    const startTimeBUffer = performance.now()
-                    const buffer = dataToBuffer(data)
-                    const endTimeBUffer = performance.now()
-                    console.log('[DATAPROXY] buffer elapsed : ', endTimeBUffer - startTimeBUffer)
-                    window.parent.postMessage({ buffer, processTime: PROCESS_TIME }, origin, [buffer]);
-                } else {
-                    window.parent.postMessage({ docs: data, processTime: PROCESS_TIME }, origin);
-                }
-                
-                endTime = performance.now()
-                console.log('[DATAPROXY] elapsed after all postMessage response : ', endTime - startTime)
+            const data = generateDummyData(DOCS_SIZE);
+            console.log('[DATAPROXY] post data : ', data)
+            endTime2 = performance.now()
+            console.log('[DATAPROXY] elapsed after processing : ', endTime2 - startTime);
+            if (useTransfer) {
+                const startTimeBUffer = performance.now()
+                const buffer = dataToBuffer(data)
+                const endTimeBUffer = performance.now()
+                console.log('[DATAPROXY] buffer elapsed : ', endTimeBUffer - startTimeBUffer)
+                window.parent.postMessage({ buffer }, origin, [buffer]);
+            } else {
+                window.parent.postMessage({ docs: data }, origin);
+            }
+            
+            endTime = performance.now()
+            console.log('[DATAPROXY] elapsed after all postMessage response : ', endTime - startTime)
 
-            }, PROCESS_TIME);
         }
 
         // Simulate processing with web worker
         function runInWorker(query, origin, {useTransfer}) {
             const worker = new Worker('./worker.js');
-            worker.postMessage({ query, processTime: PROCESS_TIME, docsSize: DOCS_SIZE });
+            worker.postMessage({ query, docsSize: DOCS_SIZE });
             
             worker.onmessage = function(event) {
                 if (useTransfer) {
@@ -92,9 +89,9 @@
                     const buffer = dataToBuffer(event.data)
                     const endTimeBUffer = performance.now()
                     console.log('[DATAPROXY] buffer elapsed : ', endTimeBUffer - startTimeBUffer)
-                    window.parent.postMessage({ buffer, processTime: PROCESS_TIME }, origin, [buffer]);
+                    window.parent.postMessage({ buffer }, origin, [buffer]);
                 } else {
-                    window.parent.postMessage({ docs: event.data, processTime: PROCESS_TIME }, origin);
+                    window.parent.postMessage({ docs: event.data }, origin);
 
                 }
                 worker.terminate(); // Terminate worker after job is done

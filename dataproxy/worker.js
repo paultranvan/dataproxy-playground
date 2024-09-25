@@ -10,16 +10,14 @@ function generateDummyData(size) {
 }
 
 self.onmessage = function(event) {
-    const { query, processTime, docsSize } = event.data;
+    const { docsSize } = event.data;
 
     console.log('IN WORKER')
 
     // Simulate processing time
-    setTimeout(() => {
-        const data = generateDummyData(docsSize)
+    const data = generateDummyData(docsSize)
 
-        // Send data back to DataProxy
-        console.log('data in worker : ', data)
-        self.postMessage(data);
-    }, processTime);
+    // Send data back to DataProxy
+    console.log('data in worker : ', data)
+    self.postMessage(data);
 };

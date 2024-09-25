@@ -45,7 +45,7 @@
 
             // End time for measuring latency
             const endTime = performance.now();
-            latency = endTime - startTime - event.data.processTime
+            latency = endTime - startTime
 
             if (USE_TRANSFER) {
                 const arrayBuffer = event.data.buffer;
